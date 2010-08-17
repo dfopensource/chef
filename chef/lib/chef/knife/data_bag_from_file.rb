@@ -29,11 +29,22 @@ class Chef
 
       def run 
         updated = load_from_file(Chef::DataBagItem, @name_args[1], @name_args[0])
-        dbag = Chef::DataBagItem.new
-        dbag.data_bag(@name_args[0])
-        dbag.raw_data = updated
-        dbag.save
-        Chef::Log.info("Updated data_bag_item[#{@name_args[1]}]")
+        if (updated.kind_of?(Array))
+          Chef::Log.info("JSON file contains multiple items - updating each one")
+          updated.each { | x |
+            dbag = Chef::DataBagItem.new
+            dbag.data_bag(@name_args[0])
+            dbag.raw_data = x
+            dbag.save
+          }
+          Chef::Log.info("Updated #{updated.length} data_bag_items[#{@name_args[1]}]")
+        else
+          dbag = Chef::DataBagItem.new
+          dbag.data_bag(@name_args[0])
+          dbag.raw_data = updated
+          dbag.save
+          Chef::Log.info("Updated data_bag_item[#{@name_args[1]}]")
+        end
       end
     end
   end
